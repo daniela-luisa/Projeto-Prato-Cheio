@@ -10,8 +10,8 @@ Conecta doadores de alimentos excedentes a ONGs, antes que a comida se perca.
 - Adrian Marcio Roth — @adrianrothh
 - Daniela Luisa da Conceição — @daniela-luisa
 - Gustavo Franz — @Gusgb4
-- Heitor Lopes Reis  —  @RochaJoaos
-- João Henrique Souza Rocha  — @dev-heitorreis
+- Heitor Lopes Reis  —  @dev-heitorreis
+- João Henrique Souza Rocha  — @RochaJoaos
 
 ## Como rodar
 
