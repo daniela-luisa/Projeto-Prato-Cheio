@@ -13,7 +13,7 @@ export async function inserir({ tipo, quantidade, validade }) {
      VALUES (?, ?, ?)
      RETURNING *`,
     [tipo, quantidade, validade]
-  );
+  
   return rows[0];
 }
 
