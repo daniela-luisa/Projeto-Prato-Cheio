@@ -8,13 +8,7 @@ import { query } from './db.js';
 
 // TODO: inserir a doação e devolver a linha criada (dica: INSERT ... RETURNING *).
 export async function inserir({ tipo, quantidade, validade }) {
-  const { rows } = await query(
-    `INSERT INTO doacoes (tipo, quantidade, validade)
-     VALUES (?, ?, ?)
-     RETURNING *`,
-    [tipo, quantidade, validade]
-  );
-  return rows[0];
+  throw new Error('não implementado: repositorio.inserir');
 }
 
 // TODO: devolver apenas as doações com status 'disponivel'.
