@@ -12,8 +12,7 @@ export async function inserir({ tipo, quantidade, validade }) {
     `INSERT INTO doacoes (tipo, quantidade, validade)
      VALUES (?, ?, ?)
      RETURNING *`,
-    [tipo, quantidade, validade]
-  
+    [tipo, quantidade, validade]);
   return rows[0];
 }
 
