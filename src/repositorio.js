@@ -16,9 +16,12 @@ export async function inserir({ tipo, quantidade, validade }) {
   return rows[0];
 }
 
-// TODO: devolver apenas as doações com status 'disponivel'.
+// Devolve apenas as doações ainda disponíveis, mais antigas primeiro.
 export async function listarDisponiveis() {
-  throw new Error('não implementado: repositorio.listarDisponiveis');
+   const { rows } = await query(
+    "SELECT * FROM doacoes WHERE status = 'disponivel' ORDER BY criada_em, id"
+  );
+  return rows;
 }
 
 // TODO: buscar uma doação pelo id (devolver undefined se não existir).
