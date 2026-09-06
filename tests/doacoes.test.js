@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import request from 'supertest';
 import { criarApp } from '../src/app.js';
 import { migrar, limparBanco, encerrar } from '../src/db.js';
@@ -15,37 +15,13 @@ describe('a aplicação sobe', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Backlog de testes do walking skeleton.
-// Cada `it.todo` é um critério de aceite ainda não implementado — o CI não
-// falha por causa deles. À medida que o grupo implementa, troque `it.todo`
-// por um `it` de verdade (veja o exemplo comentado no fim do arquivo).
-//
-// Os testes abaixo usam o banco — que na Unidade 1 é SQLite em memória:
-// nada a instalar, nada a subir.
-// ---------------------------------------------------------------------------
-
 describe('publicar e listar doações', () => {
-  it.todo('mostra a doação publicada na lista de disponíveis');
-  it.todo('recusa doação sem os campos obrigatórios');
-});
-
-describe('aceitar uma doação', () => {
-  it.todo('marca a doação como aceita pela ONG');
-  it.todo('remove a doação da lista de disponíveis depois de aceita');
-  it.todo('recusa aceitar uma doação que já foi aceita por outra ONG');
-});
-
-/* Exemplo de como transformar um critério de aceite em teste.
-   Descomente o beforeEach/afterAll quando começar a usar o banco.
-
   beforeEach(async () => { await migrar(); await limparBanco(); });
   afterAll(async () => { await encerrar(); });
 
-  Dado que um doador publicou uma doação
-  Quando uma ONG consulta as doações disponíveis
-  Então a doação aparece na lista
-
+  // Dado que um doador publicou uma doação
+  // Quando uma ONG consulta as doações disponíveis
+  // Então a doação aparece na lista
   it('mostra a doação publicada na lista de disponíveis', async () => {
     await request(app)
       .post('/api/doacoes')
@@ -56,4 +32,72 @@ describe('aceitar uma doação', () => {
     expect(res.body).toHaveLength(1);
     expect(res.body[0].tipo).toBe('Sopa');
   });
-*/
+
+  // Dado que faltam campos obrigatórios
+  // Quando um doador tenta publicar
+  // Então a API recusa e nada é gravado
+  it('recusa doação sem os campos obrigatórios', async () => {
+    const res = await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa' }); // faltando quantidade e validade
+
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toBeDefined();
+
+    const lista = await request(app).get('/api/doacoes');
+    expect(lista.body).toHaveLength(0);
+  });
+});
+
+describe('aceitar uma doação', () => {
+  beforeEach(async () => { await migrar(); await limparBanco(); });
+  afterAll(async () => { await encerrar(); });
+
+  async function publicarDoacao() {
+    const res = await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: '2026-08-01' });
+    return res.body.id;
+  }
+
+  // Dado que existe uma doação disponível
+  // Quando uma ONG a aceita
+  // Então ela passa a constar como aceita por aquela ONG
+  it('marca a doação como aceita pela ONG', async () => {
+    const id = await publicarDoacao();
+
+    const res = await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .send({ ong: 'ONG Esperança' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('aceita');
+    expect(res.body.ong).toBe('ONG Esperança');
+  });
+
+  // Dado que uma doação foi aceita
+  // Quando outra ONG consulta as disponíveis
+  // Então ela não aparece mais na lista
+  it('remove a doação da lista de disponíveis depois de aceita', async () => {
+    const id = await publicarDoacao();
+    await request(app).post(`/api/doacoes/${id}/aceitar`).send({ ong: 'ONG Esperança' });
+
+    const lista = await request(app).get('/api/doacoes');
+    expect(lista.body).toHaveLength(0);
+  });
+
+  // Dado que uma doação já foi aceita por uma ONG
+  // Quando outra ONG tenta aceitar a mesma doação
+  // Então a API recusa
+  it('recusa aceitar uma doação que já foi aceita por outra ONG', async () => {
+    const id = await publicarDoacao();
+    await request(app).post(`/api/doacoes/${id}/aceitar`).send({ ong: 'ONG Esperança' });
+
+    const res = await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .send({ ong: 'ONG Solidária' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toBeDefined();
+  });
+});
