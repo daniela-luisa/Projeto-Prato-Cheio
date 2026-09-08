@@ -24,13 +24,28 @@ export async function listarDisponiveis() {
   return rows;
 }
 
-// TODO: buscar uma doação pelo id (devolver undefined se não existir).
+// Busca uma doação pelo id. Devolve undefined se não existir.
 export async function buscarPorId(id) {
-  throw new Error('não implementado: repositorio.buscarPorId');
+  const { rows } = await query(
+    'SELECT * FROM doacoes WHERE id = ?',
+    [id]
+  );
+  return rows[0];
 }
 
-// TODO: marcar a doação como aceita pela ONG e devolver a linha atualizada.
-// Pense: como garantir que duas ONGs não aceitem a mesma doação?
+// Marca a doação como aceita pela ONG e devolve a linha atualizada.
+// O `WHERE status = 'disponivel'` garante, no próprio SQL, que duas ONGs
+// não consigam aceitar a mesma doação: só a primeira UPDATE que "chegar"
+// encontra uma linha para atualizar; a segunda não atualiza nada e
+// `rows[0]` volta undefined (seja porque o id não existe, seja porque
+// já foi aceita por outra ONG).
 export async function aceitar(id, ong) {
-  throw new Error('não implementado: repositorio.aceitar');
+  const { rows } = await query(
+    `UPDATE doacoes
+     SET status = 'aceita', ong = ?
+     WHERE id = ? AND status = 'disponivel'
+     RETURNING *`,
+    [ong, id]
+  );
+  return rows[0];
 }
