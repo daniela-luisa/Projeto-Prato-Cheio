@@ -32,11 +32,23 @@ export async function criarDoacao({ tipo, quantidade, validade }) {
 
 // História zero — "uma ONG vê as doações disponíveis"
 export async function listarDisponiveis() {
-  throw new Error("não implementado: listarDisponiveis");
+  return repo.listarDisponiveis();
 }
 
 // História zero — "uma ONG aceita uma doação"
 // Regra do caso: uma doação aceita não fica disponível para outra ONG
 export async function aceitar(id, ong) {
-  throw new Error("não implementado: aceitar");
+  if (!ong) {
+    throw new Error("ong é obrigatória");
+  }
+
+  // repo.aceitar só atualiza a linha se ela ainda estiver 'disponivel'
+  // (a trava contra corrida entre duas ONGs vive no SQL, não aqui).
+  // Se não veio linha de volta, é porque a doação não existe ou já foi aceita.
+  const doacaoAtualizada = await repo.aceitar(id, ong);
+  if (!doacaoAtualizada) {
+    throw new Error("doação não encontrada ou já aceita por outra ONG");
+  }
+
+  return doacaoAtualizada;
 }
