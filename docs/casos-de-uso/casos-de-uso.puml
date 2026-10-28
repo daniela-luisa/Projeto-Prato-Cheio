@@ -1,0 +1,73 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam ArrowFontSize 11
+skinparam usecase {
+  FontSize 13
+}
+
+title Prato Cheio — Diagrama de casos de uso (v2)
+
+actor "Doador\n(restaurante, mercado,\npadaria)" as Doador
+actor "ONG\n(cozinha comunitária)" as ONG
+actor "Coordenador\nda plataforma" as Coord
+actor "Temporizador\n(prazos de retirada\ne validade)" as Tempo
+
+rectangle "Sistema Prato Cheio" {
+
+  ' Implementados (história zero da U1)
+  usecase "UC3\nPublicar doação" as UC3 #E1F5EE;line:0F6E56;text:085041
+  usecase "UC4\nConsultar doações\ndisponíveis" as UC4 #E1F5EE;line:0F6E56;text:085041
+  usecase "UC5\nAceitar doação" as UC5 #E1F5EE;line:0F6E56;text:085041
+
+  ' Planejados
+  usecase "UC1\nCadastrar-se" as UC1 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC2\nAprovar cadastro" as UC2 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC6\nConfirmar retirada" as UC6 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC7\nCancelar doação" as UC7 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC8\nDesistir da\ndoação aceita" as UC8 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC9\nLiberar doação\nnão retirada" as UC9 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC10\nExpirar doação\nvencida" as UC10 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+  usecase "UC11\nAcompanhar minhas\ndoações" as UC11 #F1EFE8;line:5F5E5A;line.dashed;text:444441
+}
+
+' Participação dos atores
+Doador -- UC1
+ONG -- UC1
+Doador -- UC3
+Doador -- UC6
+Doador -- UC7
+Doador -- UC11
+ONG -- UC4
+ONG -- UC5
+ONG -- UC6
+ONG -- UC8
+ONG -- UC11
+UC2 -- Coord
+UC9 -- Tempo
+UC10 -- Tempo
+
+' Encadeamento pelo estado da doação (precedência)
+UC1 ..> UC2 : cadastro\npendente
+UC2 ..> UC3 : doador\naprovado
+UC2 ..> UC4 : ONG\naprovada
+UC3 ..> UC4 : doação\ndisponível
+UC4 ..> UC5 : doação\nescolhida
+UC5 ..> UC6 : doação\naceita
+UC3 ..> UC7 : disponível,\ndoador desiste
+UC5 ..> UC8 : aceita,\nONG desiste
+UC5 ..> UC9 : aceita, janela\nde retirada vencida
+UC3 ..> UC10 : disponível,\nvalidade vencida
+UC8 ..> UC4 : volta a\ndisponível
+UC9 ..> UC4 : volta a disponível,\nse ainda válida
+
+legend right
+  |= Elemento |= Significado |
+  | Verde | implementado (história zero da U1) |
+  | Cinza tracejado | planejado |
+  | Linha contínua | o ator participa do caso de uso |
+  | Seta tracejada | estado da doação que habilita o próximo caso de uso |
+endlegend
+
+@enduml
