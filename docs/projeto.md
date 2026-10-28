@@ -31,8 +31,12 @@
 Ver `docs/adr/`.
 
 ## Requisitos não-funcionais
-| Requisito | Como afeta o design |
-|---|---|
+
+| # | Requisito | Como se verifica | Como afeta o design |
+|---|------------------------|------------------|---------------------|
+| RNF01 | Toda mudança de estado de uma doação (publicada, aceita, retirada, cancelada) gera um registro com data e hora e ONG responsável. Os registros nunca são alterados nem apagados. | Teste que leva a doação por todos os estados e confere uma linha de evento por mudança, e que não existe rota de alteração ou remoção. | Tabela separada de eventos em vez de sobrescrever o status. Custo: mais uma tabela e mais escrita por operação. |
+| RNF02 | GET /api/doacoes responde em até [500 ms] no percentil 95, com [10 mil] doações no banco. | Teste de carga medindo o p95 com [10 mil] doações. | Índices em status e criada_em, e sem pausa por ociosidade (ADR 0003). Custo: espaço extra e escrita um pouco mais lenta. |
+| RNF03 | Uma ONG da cidade X recebe, em GET /api/doacoes, zero doações de outras cidades, e 100% das doações têm cidade preenchida. | Teste com doações de 2 cidades e uma ONG de cada, conferindo que as listas não se cruzam. | Novo campo cidade no schema e filtro na listagem. |
 
 ## Critérios de validação do projeto
 
