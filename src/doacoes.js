@@ -47,8 +47,27 @@ export async function aceitar(id, ong) {
   // Se não veio linha de volta, é porque a doação não existe ou já foi aceita.
   const doacaoAtualizada = await repo.aceitar(id, ong);
   if (!doacaoAtualizada) {
-    throw new Error("doação não encontrada ou já aceita por outra ONG");
+    throw new Error("doação não encontrada ou não está mais disponível");
   }
 
   return doacaoAtualizada;
+}
+
+export async function cancelar(id) {
+  const identificador = Number(id);
+  if (!Number.isSafeInteger(identificador) || identificador <= 0) {
+    throw new Error("identificador de doação inválido");
+  }
+
+  const doacaoCancelada = await repo.cancelar(identificador);
+  if (doacaoCancelada) return doacaoCancelada;
+
+  const existente = await repo.buscarPorId(identificador);
+  if (!existente) {
+    throw new Error("doação não encontrada");
+  }
+  if (existente.status === 'aceita') {
+    throw new Error("doação já aceita. Entre em contato com a coordenação para solicitar o cancelamento");
+  }
+  throw new Error("doação não está mais disponível para cancelamento");
 }

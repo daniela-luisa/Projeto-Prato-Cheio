@@ -13,6 +13,9 @@
     button { margin-top: .8rem; cursor: pointer; }
     li { border: 1px solid #ddd; border-radius: .5rem; padding: .6rem; margin-bottom: .5rem; list-style: none; }
     ul { padding: 0; }
+    #mensagem { min-height: 1.5rem; }
+    .acoes { display: flex; gap: .5rem; }
+    .acoes button { flex: 1; min-width: 0; }
   </style>
 </head>
 <body>
@@ -29,46 +32,101 @@
     <button id="publicar">Publicar</button>
   </fieldset>
 
+  <p id="mensagem" role="status" aria-live="polite"></p>
   <h2>Doações disponíveis</h2>
   <ul id="lista"></ul>
 
   <script>
+    const mensagem = document.getElementById('mensagem');
+
+    function avisar(texto) {
+      mensagem.textContent = texto;
+    }
+
+    async function requisitar(url, opcoes) {
+      const resposta = await fetch(url, opcoes);
+      const dados = await resposta.json();
+      if (!resposta.ok) {
+        throw new Error(dados.erro || 'Não foi possível concluir a operação.');
+      }
+      return dados;
+    }
+
     async function carregar() {
-      const res = await fetch('/api/doacoes');
-      const doacoes = await res.json();
-      const lista = document.getElementById('lista');
-      lista.innerHTML = doacoes.length
-        ? ''
-        : '<li>Nenhuma doação disponível.</li>';
-      for (const d of doacoes) {
-        const li = document.createElement('li');
-        li.textContent = `${d.tipo} — ${d.quantidade} (até ${d.validade}) `;
-        const botao = document.createElement('button');
-        botao.textContent = 'Aceitar';
-        botao.onclick = async () => {
-          await fetch(`/api/doacoes/${d.id}/aceitar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ong: 'Minha ONG' })
-          });
-          carregar();
-        };
-        li.appendChild(botao);
-        lista.appendChild(li);
+      try {
+        const doacoes = await requisitar('/api/doacoes');
+        const lista = document.getElementById('lista');
+        lista.innerHTML = '';
+
+        if (!doacoes.length) {
+          const vazio = document.createElement('li');
+          vazio.textContent = 'Nenhuma doação disponível.';
+          lista.appendChild(vazio);
+        }
+
+        for (const d of doacoes) {
+          const li = document.createElement('li');
+          const descricao = document.createElement('div');
+          descricao.textContent = `${d.tipo} — ${d.quantidade} (até ${d.validade})`;
+          li.appendChild(descricao);
+
+          const acoes = document.createElement('div');
+          acoes.className = 'acoes';
+
+          const aceitar = document.createElement('button');
+          aceitar.textContent = 'Aceitar';
+          aceitar.onclick = async () => {
+            try {
+              await requisitar(`/api/doacoes/${d.id}/aceitar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ong: 'Minha ONG' })
+              });
+              avisar('Doação aceita.');
+              await carregar();
+            } catch (erro) {
+              avisar(erro.message);
+            }
+          };
+
+          const cancelar = document.createElement('button');
+          cancelar.textContent = 'Cancelar doação';
+          cancelar.onclick = async () => {
+            if (!window.confirm('Deseja cancelar esta doação?')) return;
+            try {
+              await requisitar(`/api/doacoes/${d.id}/cancelar`, { method: 'POST' });
+              avisar('Doação cancelada.');
+              await carregar();
+            } catch (erro) {
+              avisar(erro.message);
+            }
+          };
+
+          acoes.append(aceitar, cancelar);
+          li.appendChild(acoes);
+          lista.appendChild(li);
+        }
+      } catch (erro) {
+        avisar(erro.message);
       }
     }
 
     document.getElementById('publicar').onclick = async () => {
-      await fetch('/api/doacoes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo: document.getElementById('tipo').value,
-          quantidade: document.getElementById('quantidade').value,
-          validade: document.getElementById('validade').value
-        })
-      });
-      carregar();
+      try {
+        await requisitar('/api/doacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: document.getElementById('tipo').value,
+            quantidade: document.getElementById('quantidade').value,
+            validade: document.getElementById('validade').value
+          })
+        });
+        avisar('Doação publicada.');
+        await carregar();
+      } catch (erro) {
+        avisar(erro.message);
+      }
     };
 
     carregar();
