@@ -49,3 +49,14 @@ export async function aceitar(id, ong) {
   );
   return rows[0];
 }
+
+export async function cancelar(id) {
+  const { rows } = await query(
+    `UPDATE doacoes
+     SET status = 'cancelada'
+     WHERE id = ? AND status = 'disponivel'
+     RETURNING *`,
+    [id]
+  );
+  return rows[0];
+}
