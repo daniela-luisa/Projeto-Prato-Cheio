@@ -7,7 +7,7 @@ A divisão de tarefas recebida pede a implementação da “2ª história nova�
 o repositório não identifica qual funcionalidade corresponde a essa atribuição.
 **A escolha do cancelamento é uma suposição de trabalho, a ser confirmada na
 revisão do grupo**, fundamentada na regra de negócio 2 de
-[`docs/analise.md`](../analise.md). Ela não é a História 2 daquele documento:
+[`docs/historias/analise.md`](analise.md). Ela não é a História 2 daquele documento:
 a listagem de doações já está implementada.
 
 > Como doador, quero cancelar uma doação enquanto nenhuma ONG a tiver aceitado,
