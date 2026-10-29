@@ -44,4 +44,12 @@ Ver `docs/adr/`.
 
 ## Critérios de validação do projeto
 
+## Reflexão final: decisão técnica mais importante já tomada
+
+A decisão técnica mais difícil que o grupo tomou até agora não foi uma escolha de tecnologia, mas a forma de lidar com concorrência sem usar travas explícitas no código. Tanto aceitar (Unidade 1) quanto cancelar (esta entrega) resolvem o mesmo tipo de problema, duas operações disputando a mesma doação ao mesmo tempo,com um único UPDATE SQL parametrizado que só afeta a linha se ela ainda estiver no status esperado (WHERE id = ? AND status = 'disponivel'), sem fazer uma checagem separada antes de atualizar.
+
+Foi difícil porque a solução mais intuitiva seria checar o status primeiro (SELECT) e só então decidir se atualiza — mas isso abre uma janela de tempo entre checar e agir, onde duas requisições simultâneas poderiam "ver" o mesmo estado disponível e as duas tentarem prosseguir. A solução adotada empurra essa responsabilidade para o próprio banco de dados, que garante atomicidade na operação.
+
+Como verificamos: com testes automatizados que simulam diretamente o cenário de disputa — no caso do cancelamento, o CA05 cobre aceite e cancelamento disputando a mesma doação ao mesmo tempo, confirmando que apenas uma operação é bem-sucedida e o registro final corresponde a quem "venceu". A reutilização do mesmo padrão em duas histórias diferentes (aceitar e cancelar) também foi uma forma de validar que a decisão generaliza bem, e não foi uma solução pontual para um caso só.
+
 ## Uso de IA
