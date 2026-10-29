@@ -25,7 +25,11 @@
 **Escolha:** Alternativa A, porque no caso o principal inimigo é o tempo. A injustiça entre ONGs pode ser atenuada pela regra de negócio 1 (limite de N doações pendentes por ONG).
 
 ## Diagramas
-(contexto + dados ou componentes — em `docs/` ou como imagem)
+Reflexão final qual diagrama foi mais útil
+
+O diagrama de Casos de Uso foi o mais útil para dar visão geral do produto. Ele mostra, de uma vez, os 4 atores do sistema e separa claramente o que já está implementado do que ainda é planejado. Isso deixa facil de avaliar, num olhar só, o tamanho do que falta construir em relação ao que já existe.
+
+verificar em `docs/estados.md` e `docs/casos-de-uso`
 
 ## ADRs
 Ver `docs/adr/`.
