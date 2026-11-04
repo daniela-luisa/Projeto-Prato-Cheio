@@ -41,5 +41,13 @@ export function criarApp() {
     }
   });
 
+  app.get('/api/entregas/disponiveis', async (req, res) => {
+    try {
+      res.json(await doacoes.listarAceitas());
+    } catch (erro) {
+      res.status(400).json({ erro: erro.message });
+    }
+  });
+
   return app;
 }
