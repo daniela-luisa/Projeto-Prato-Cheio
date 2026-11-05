@@ -71,3 +71,7 @@ export async function cancelar(id) {
   }
   throw new Error("doação não está mais disponível para cancelamento");
 }
+
+export async function listarAceitas() {
+  return repo.listarAceitas();
+}

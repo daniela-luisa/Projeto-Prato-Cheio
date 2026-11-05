@@ -60,3 +60,10 @@ export async function cancelar(id) {
   );
   return rows[0];
 }
+
+export async function listarAceitas() {
+  const { rows } = await query(
+    "SELECT * FROM doacoes WHERE status = 'aceita' ORDER BY validade, id"
+  );
+  return rows;
+}

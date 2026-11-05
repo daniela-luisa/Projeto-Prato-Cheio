@@ -36,6 +36,9 @@
   <h2>Doações disponíveis</h2>
   <ul id="lista"></ul>
 
+  <h2>Remessas para entrega</h2>
+  <ul id="entregas"></ul>
+
   <script>
     const mensagem = document.getElementById('mensagem');
 
@@ -50,6 +53,33 @@
         throw new Error(dados.erro || 'Não foi possível concluir a operação.');
       }
       return dados;
+    }
+
+    async function carregarEntregas() {
+      const lista = document.getElementById('entregas');
+      lista.innerHTML = '';
+
+      const remessas = await requisitar('/api/entregas/disponiveis');
+
+      if (!remessas.length) {
+        const vazio = document.createElement('li');
+        vazio.textContent = 'Nenhuma remessa aceita aguardando entrega.';
+        lista.appendChild(vazio);
+        return;
+      }
+
+      for (const r of remessas) {
+        const li = document.createElement('li');
+
+        const titulo = document.createElement('div');
+        titulo.textContent = `${r.tipo} — ${r.quantidade}`;
+
+        const detalhes = document.createElement('div');
+        detalhes.textContent = `ONG: ${r.ong} · vence em ${r.validade}`;
+
+        li.append(titulo, detalhes);
+        lista.appendChild(li);
+      }
     }
 
     async function carregar() {
@@ -106,6 +136,8 @@
           li.appendChild(acoes);
           lista.appendChild(li);
         }
+
+        await carregarEntregas();
       } catch (erro) {
         avisar(erro.message);
       }
