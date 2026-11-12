@@ -12,6 +12,11 @@ export async function criarDoacao({ tipo, quantidade, validade }) {
     throw new Error("tipo, quantidade e validade são obrigatórios");
   }
 
+  const quantidadeNumerica = Number.parseFloat(quantidade);
+  if (Number.isFinite(quantidadeNumerica) && quantidadeNumerica <= 0) {
+    throw new Error("quantidade deve ser maior que zero");
+  }
+
   // critério de aceite: "Tentativa de publicar doação vencida"
   // Comparamos só a data (sem hora) pra não rejeitar uma validade == hoje
   const hoje = new Date();
