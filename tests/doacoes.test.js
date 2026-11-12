@@ -28,6 +28,24 @@ describe('publicar e listar doações', () => {
   beforeEach(async () => { await migrar(); await limparBanco(); });
   afterAll(async () => { await encerrar(); });
 
+  // Caso limite 1: quantidade zero (o bug que já conhecemos)
+  it('recusa doação com quantidade zero', async () => {
+    const res = await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa', quantidade: '0', validade: validadeFutura() });
+    expect(res.status).toBe(400);
+    const lista = await request(app).get('/api/doacoes');
+    expect(lista.body).toHaveLength(0);
+  });
+
+  // Caso de erro 2: validade em formato inválido
+  it('recusa doação com validade em formato inválido', async () => {
+    const res = await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: 'amanhã' });
+    expect(res.status).toBe(400);
+  });
+
   // Dado que um doador publicou uma doação
   // Quando uma ONG consulta as doações disponíveis
   // Então a doação aparece na lista
