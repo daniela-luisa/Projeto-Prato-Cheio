@@ -1,24 +1,33 @@
 // Regras de negócio das doações
 // TODO (grupo): implementar conforme as histórias e os critérios de aceite da Unidade 1
 import * as repo from "./repositorio.js";
+import { STATUS } from "./status.js";
 
-// História zero — "um doador publica uma doação"
-// Critério: tipo, quantidade e validade são obrigatórios
+// ---------------------------------------------------------------------------
+// Validações da publicação. Cada uma cuida de UMA regra e lança erro se falhar.
+// A ordem de chamada em criarDoacao faz parte do comportamento (é a ordem
+// em que o usuário recebe as mensagens) — está travada em tests/regras.test.js.
+// ---------------------------------------------------------------------------
 
-// Critério: validade já vencida é rejeitada.
-export async function criarDoacao({ tipo, quantidade, validade }) {
-  // criterio de aceite: "Campos obrigatórios não preenchidos")
+// Critério de aceite: "Campos obrigatórios não preenchidos".
+function exigirCamposObrigatorios({ tipo, quantidade, validade }) {
   if (!tipo || !quantidade || !validade) {
     throw new Error("tipo, quantidade e validade são obrigatórios");
   }
+}
 
+// Só rejeita quando a quantidade COMEÇA com número e ele é ≤ 0 ("0", "-5 kg").
+// Texto livre ("dez porções") passa: parseFloat dá NaN, que não é finito.
+function exigirQuantidadePositiva(quantidade) {
   const quantidadeNumerica = Number.parseFloat(quantidade);
   if (Number.isFinite(quantidadeNumerica) && quantidadeNumerica <= 0) {
     throw new Error("quantidade deve ser maior que zero");
   }
+}
 
-  // critério de aceite: "Tentativa de publicar doação vencida"
-  // Comparamos só a data (sem hora) pra não rejeitar uma validade == hoje
+// Critério de aceite: "Tentativa de publicar doação vencida".
+// Comparamos só a data (sem hora) pra não rejeitar uma validade == hoje.
+function exigirValidadeNaoVencida(validade) {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
@@ -26,12 +35,17 @@ export async function criarDoacao({ tipo, quantidade, validade }) {
   if (isNaN(dataValidade.getTime())) {
     throw new Error("validade inválida");
   }
-
   if (dataValidade < hoje) {
     throw new Error("validade já vencida");
   }
+}
 
-  // Passou nas validações -> delega a persistência pro repositório
+// História zero — "um doador publica uma doação".
+export async function criarDoacao({ tipo, quantidade, validade }) {
+  exigirCamposObrigatorios({ tipo, quantidade, validade });
+  exigirQuantidadePositiva(quantidade);
+  exigirValidadeNaoVencida(validade);
+
   return repo.inserir({ tipo, quantidade, validade });
 }
 
@@ -71,7 +85,7 @@ export async function cancelar(id) {
   if (!existente) {
     throw new Error("doação não encontrada");
   }
-  if (existente.status === 'aceita') {
+  if (existente.status === STATUS.ACEITA) {
     throw new Error("doação já aceita. Entre em contato com a coordenação para solicitar o cancelamento");
   }
   throw new Error("doação não está mais disponível para cancelamento");
